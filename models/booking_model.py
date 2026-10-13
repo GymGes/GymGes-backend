@@ -6,7 +6,7 @@ class Booking(Base):
     __tablename__ = "booking"
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    member_code = Column(String(50), nullable=False, index=True)
+    member_code = Column(String(9), nullable=False, index=True)
     class_id = Column(Integer, nullable=False, index=True)
     booking_date = Column(DateTime, nullable=False)
     

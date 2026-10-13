@@ -23,5 +23,27 @@ class WeeklyClassBase(BaseModel):
     activity_date : datetime = Field(
         ...,
         description="date of the activity",
-        xamples=[datetime(2026, 10, 13, 10, 30)]
+        examples=[datetime(2026, 10, 13, 10, 30)]
     )
+
+class WeeklyClassCreate(WeeklyClassBase):
+    pass
+
+class WeeklyClassUpdate(BaseModel):
+    activity_type_id : Optional[int] = Field (
+        None,
+        gt=0
+    )
+
+    teacher_id :Optional[int]  = Field (
+        None,
+        gt=0
+    )
+
+    activity_date : optional[datetime]  = Field(
+        None,
+
+    )
+    class weeklyClassResponse (WeeklyClassBase):
+
+        model_config = ConfigDict(from_attributes=True)
