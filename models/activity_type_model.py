@@ -14,6 +14,12 @@ class ActivityType(Base):
     duration = Column(Integer, nullable=False)
     max_students = Column(Integer, nullable=False)
     description = Column(String(255), nullable=True)
+    weekly_classes = relationship(          
+        "WeeklyClass",
+        back_populates="activity_type",
+        cascade="all, delete-orphan"
+    )
+
 
     def __repr__(self) -> str:
         return f"<ActivityType(id={self.id}, name='{self.name}')>"
