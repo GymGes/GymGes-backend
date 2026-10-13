@@ -7,6 +7,7 @@ class BookingBase(BaseModel):
         ...,
         min_length=9,
         max_length=9,
+        pattern=r"^[0-9XYZ][0-9]{7}[TRWAGMYFPDXBNJZSQVHLCKE]$",
         description="Member code (DNI)",
         examples=["12345678A"]
     )
