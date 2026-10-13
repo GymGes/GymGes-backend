@@ -10,4 +10,4 @@ class Teacher(Base):
 
     reservations= relationship("WeeklyClass", back_populates="record_label",cascade="all, delete-orphan")
     def __repr__(self) -> str:
-        return f"<RecordLabel(id={self.id}, name='{self.name}', country='{self.country}')>"
+        return f"<Teacher (id={self.id}, name='{self.name}')>"
