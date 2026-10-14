@@ -5,7 +5,7 @@ from core.database import Base
 class Member(Base):
     __tablename__ = "members"
 
-    member_code = Column(String(9), primary_key=True, index=True)
+    code = Column(String(9), primary_key=True, index=True)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     age = Column(Integer, nullable=False)
