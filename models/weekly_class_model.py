@@ -1,14 +1,17 @@
-from sqlalchemy import Column, Integer, Date, ForeignKey
+from datetime import datetime
+from sqlalchemy import Column, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from core.database import Base
 
-class WeeklyClass(Base):
-    __tablename__= "weekly_classes"
-    teacher_id = Column (Integer, ForeignKey("teachers.id"), primary_key=True)
-    activity_type_id = Column (Integer, ForeignKey("activity_types.id"), primary_key=True)
-    activity_date= Column(Date,nullable=False )
 
-    teacher= relationship("Teacher", back_populates="weekly_classes")
-    activity_type= relationship("ActivityType", back_populates="weekly_classes")
-    def __repr__(self) -> str:
-        return f"<Weekly activity (id_activity_type={self.activity_type_id}, teacher_id='{self.teacher_id}')>"
+class WeeklyClass(Base):
+    __tablename__ = "weekly_classes"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)  
+    teacher_id = Column(Integer, ForeignKey("teachers.id", ondelete="CASCADE"), nullable=False)
+    activity_type_id = Column(Integer, ForeignKey("activity_types.id", ondelete="CASCADE"), nullable=False)
+    activity_date = Column(DateTime, nullable=False)      
+    duration = Column(Integer, nullable=False)            
+    available_spots = Column(Integer, nullable=False)     
+    teacher = relationship("Teacher", back_populates="weekly_classes")
+    activity_type = relationship("ActivityType", back_populates="weekly_classes")
+    bookings = relationship("Booking", back_populates="weekly_class", cascade="all, delete-orphan")
