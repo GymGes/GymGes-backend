@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from controllers.weekly_class_controller import (
+from controller.weekly_class_controller import (
     get_all_weekly_classes,
     get_weekly_class_by_ids,
     create_weekly_class,
