@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from controller.weekly_class_controller import (
     get_all_weekly_classes,
-    get_weekly_class_by_ids,
+    get_weekly_class_by_id,
     create_weekly_class,
     update_weekly_class,
     delete_weekly_class
@@ -36,7 +36,7 @@ def read_weekly_class(
     activity_type_id: int,
     db: Session = Depends(get_db)
 ):
-    weekly_class = get_weekly_class_by_ids(
+    weekly_class = get_weekly_class_by_id(
         db,
         teacher_id,
         activity_type_id
