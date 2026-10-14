@@ -10,7 +10,6 @@ class WeeklyClass(Base):
     teacher_id = Column(Integer, ForeignKey("teachers.id", ondelete="CASCADE"), nullable=False)
     activity_type_id = Column(Integer, ForeignKey("activity_types.id", ondelete="CASCADE"), nullable=False)
     activity_date = Column(DateTime, nullable=False)      
-    duration = Column(Integer, nullable=False)            
     available_spots = Column(Integer, nullable=False)     
     teacher = relationship("Teacher", back_populates="weekly_classes")
     activity_type = relationship("ActivityType", back_populates="weekly_classes")
