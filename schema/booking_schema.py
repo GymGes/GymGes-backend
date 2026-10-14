@@ -17,11 +17,7 @@ class BookingBase(BaseModel):
         description="ID of the weekly class",
         examples=[1]
     )
-    booking_date: datetime = Field(
-        ...,
-        description="Date and time of the booking",
-        examples=["2025-04-10T10:00:00"]
-    )
+
 
 class BookingCreate(BookingBase):
     pass
@@ -29,7 +25,6 @@ class BookingCreate(BookingBase):
 class BookingUpdate(BaseModel):
     member_code: Optional[str] = Field(None, min_length=9, max_length=9)
     class_id: Optional[int] = Field(None, gt=0)
-    booking_date: Optional[datetime] = Field(None)
 
 class BookingResponse(BookingBase):
     id: int = Field(..., description="PK database", examples=[1])
