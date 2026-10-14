@@ -40,7 +40,7 @@ class WeeklyClassUpdate(BaseModel):
         gt=0
     )
 
-    activity_date : optional[datetime]  = Field(
+    activity_date : Optional[datetime]  = Field(
         None,
 
     )
