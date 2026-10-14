@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from core.database import Base
 
@@ -12,4 +12,9 @@ class Member(Base):
     city = Column(String(100), nullable=False)
     address = Column(String(255), nullable=False)
 
+    plan_id = Column(Integer, ForeignKey("plans.id"), nullable=False, index=True)
+
+    remaining_credits = Column(Integer, nullable=False)
+
     bookings = relationship("Booking", back_populates="member")
+    plan = relationship("Plan", back_populates="member")

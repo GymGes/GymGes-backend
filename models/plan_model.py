@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from core.database import Base
 
@@ -9,6 +9,7 @@ class Plan(Base):
     name = Column(String(120), nullable=False, index=True)
     credits = Column(Integer, nullable=False, index=True)
 
-    member= relationship("Member", back_populates="record_label",cascade="all, delete-orphan")
+    member= relationship("Member", back_populates="plan",cascade="all, delete-orphan")
+   
     def __repr__(self) -> str:
         return f"<Plan (id={self.id}, name='{self.name}')>"
