@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from core.database import Base
@@ -12,7 +12,6 @@ class Booking(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     member_code = Column(String(9), ForeignKey("member.code"), nullable=False, index=True)
     class_id = Column(Integer, ForeignKey("weekly_class.id"), nullable=False, index=True)
-    booking_date = Column(DateTime, nullable=False)
     
     member = relationship("Member", back_populates="bookings")
     weekly_class = relationship("WeeklyClass", back_populates="bookings")

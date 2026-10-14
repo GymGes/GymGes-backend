@@ -37,7 +37,6 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
     new_booking = Booking(
         member_code=booking_data.member_code,
         class_id=booking_data.class_id,
-        booking_date=booking_data.booking_date
     )
     try:
         db.add(new_booking)
@@ -59,8 +58,6 @@ def update_booking(db: Session, booking_id: int, booking_data: BookingUpdate) ->
             booking.member_code = booking_data.member_code
         if booking_data.class_id is not None:
             booking.class_id = booking_data.class_id
-        if booking_data.booking_date is not None:
-            booking.booking_date = booking_data.booking_date
         db.commit()
         db.refresh(booking)
         return booking
