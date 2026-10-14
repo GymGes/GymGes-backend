@@ -14,5 +14,7 @@ class Member(Base):
 
     plan_id = Column(Integer, ForeignKey("plans.id"), nullable=False, index=True)
 
+    remaining_credits = Column(Integer, nullable=False)
+
     bookings = relationship("Booking", back_populates="member")
     plan = relationship("Plan", back_populates="member")
