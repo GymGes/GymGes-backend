@@ -8,7 +8,7 @@ from routes.teacher_routes import router as  teacher_router
 from routes.weekly_class_routes import router as  weekly_class_router
 
 app = FastAPI(
-    title="Palmeras en la Mancha Records API",
+    title="GymGes API",
     version="1.0.0"
 )
 app.add_middleware(

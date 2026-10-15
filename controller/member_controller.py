@@ -42,7 +42,7 @@ def create_member(db: Session, member_data: MemberCreate) -> Member:
             detail="Plan not found"
         )
     new_member = Member(
-        member_code=member_data.member_code,
+        code=member_data.code,
         first_name=member_data.first_name,
         last_name=member_data.last_name,
         age=member_data.age,
