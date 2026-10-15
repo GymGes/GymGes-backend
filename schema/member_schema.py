@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 class MemberBase(BaseModel):
-    member_code: str = Field(
+    code: str = Field(
         ...,
         min_length=9,
         max_length=9,

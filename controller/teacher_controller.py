@@ -1,95 +1,103 @@
 
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from core.database import get_db
 from models.teacher_model import Teacher
-from schema.teacher_schema import (
-    TeacherCreate,
-    TeacherUpdate,
-    TeacherResponse
-)
-from controller.teacher_controller import (
-    get_all_teachers,
-    get_teacher_by_id,
-    create_teacher,
-    update_teacher,
-    delete_teacher
-)
-
-router = APIRouter(
-    prefix="/teachers",
-    tags=["Teachers"]
-)
+from schema.teacher_schema import TeacherCreate, TeacherUpdate
 
 
-@router.get("/", response_model=List[TeacherResponse])
-def read_teachers(
+def get_all_teachers(
+    db: Session,
     skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db)
-):
-    return get_all_teachers(db, skip, limit)
-
-
-@router.get("/{teacher_id}", response_model=TeacherResponse)
-def read_teacher(
-    teacher_id: int,
-    db: Session = Depends(get_db)
-):
-    teacher = get_teacher_by_id(db, teacher_id)
-
-    if teacher is None:
+    limit: int = 100
+) -> List[Teacher]:
+    try:
+        return db.query(Teacher).offset(skip).limit(limit).all()
+    except SQLAlchemyError as error:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Teacher not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error while retrieving teachers: {str(error)}"
         )
 
-    return teacher
 
-
-@router.post(
-    "/",
-    response_model=TeacherResponse,
-    status_code=status.HTTP_201_CREATED
-)
-def create_new_teacher(
-    data: TeacherCreate,
-    db: Session = Depends(get_db)
-):
-    return create_teacher(db, data)
-
-
-@router.put("/{teacher_id}", response_model=TeacherResponse)
-def update_existing_teacher(
-    teacher_id: int,
-    data: TeacherUpdate,
-    db: Session = Depends(get_db)
-):
-    teacher = update_teacher(db, teacher_id, data)
-
-    if teacher is None:
+def get_teacher_by_id(
+    db: Session,
+    teacher_id: int
+) -> Optional[Teacher]:
+    try:
+        return db.query(Teacher).filter(Teacher.id == teacher_id).first()
+    except SQLAlchemyError as error:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Teacher not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error while retrieving teacher {teacher_id}: {str(error)}"
         )
 
-    return teacher
 
+def create_teacher(
+    db: Session,
+    data: TeacherCreate
+) -> Teacher:
+    new_teacher = Teacher(
+        name=data.name
+    )
 
-@router.delete("/{teacher_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_existing_teacher(
-    teacher_id: int,
-    db: Session = Depends(get_db)
-):
-    deleted = delete_teacher(db, teacher_id)
-
-    if not deleted:
+    try:
+        db.add(new_teacher)
+        db.commit()
+        db.refresh(new_teacher)
+        return new_teacher
+    except SQLAlchemyError as error:
+        db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Teacher not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error while creating teacher: {str(error)}"
         )
 
-    return None
+
+def update_teacher(
+    db: Session,
+    teacher_id: int,
+    data: TeacherUpdate
+) -> Optional[Teacher]:
+    existing = get_teacher_by_id(db, teacher_id)
+
+    if not existing:
+        return None
+
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(existing, field, value)
+
+    try:
+        db.commit()
+        db.refresh(existing)
+        return existing
+    except SQLAlchemyError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error while updating teacher {teacher_id}: {str(error)}"
+        )
+
+
+def delete_teacher(
+    db: Session,
+    teacher_id: int
+) -> bool:
+    existing = get_teacher_by_id(db, teacher_id)
+
+    if not existing:
+        return False
+
+    try:
+        db.delete(existing)
+        db.commit()
+        return True
+    except SQLAlchemyError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error while deleting teacher {teacher_id}: {str(error)}"
+        )
