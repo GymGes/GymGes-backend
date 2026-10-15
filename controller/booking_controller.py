@@ -6,8 +6,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from models.booking_model import Booking
-from models.member_model import Member
 from models.weekly_class_model import WeeklyClass
+from models.member_model import Member
 from schema.booking_schema import BookingCreate, BookingUpdate
 
 
@@ -103,27 +103,31 @@ def get_booking_by_id(db: Session, booking_id: int) -> Booking:
 
 
 def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
-    _ensure_member_exists(db, booking_data.member_code)
-    new_class = _ensure_class_exists(db, booking_data.class_id)
+    classvar= db.query(WeeklyClass).filter(WeeklyClass.id == booking_data.class_id).first()
+    member = db.query(Member).filter(Member.code == booking_data.member_code).first()
 
-    # 1) Impedir reserva duplicada de la misma clase (mensaje específico)
-    duplicate = db.query(Booking).filter(
-        Booking.member_code == booking_data.member_code,
-        Booking.class_id == booking_data.class_id
-    ).first()
-    if duplicate:
+    if classvar is None:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Member {booking_data.member_code} already booked class {booking_data.class_id}"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="class not found"
+        ) 
+    
+    if member is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="class not found"
+        ) 
+    if member.remaining_credits<=0:
+        raise HTTPException(
+            status_code= status.HTTP_406_NOT_ACCEPTABLE,
+            detail="the member don't have enough credits" 
         )
-
-    # 2) Impedir solapamiento con otras reservas del socio
-    _check_member_schedule_conflict(db, booking_data.member_code, new_class)
-
     new_booking = Booking(
         member_code=booking_data.member_code,
         class_id=booking_data.class_id,
     )
+    _check_member_schedule_conflict(db, booking_data.member_code, new_class)
+    member.remaining_credits-=1
     try:
         db.add(new_booking)
         db.commit()
@@ -179,6 +183,14 @@ def update_booking(db: Session, booking_id: int, booking_data: BookingUpdate) ->
 
 def delete_booking(db: Session, booking_id: int) -> None:
     booking = get_booking_by_id(db, booking_id)
+    member= db.query(Member).filter(Member.code == booking.member_code).first()
+    if member is None:
+        raise HTTPException(
+            status_code= status.HTTP_404_NOT_FOUND,
+            detail="member not found"
+        )
+    member.remaining_credits+=1
+        
     try:
         db.delete(booking)
         db.commit()
