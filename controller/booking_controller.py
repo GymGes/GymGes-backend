@@ -126,7 +126,7 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
         member_code=booking_data.member_code,
         class_id=booking_data.class_id,
     )
-    _check_member_schedule_conflict(db, booking_data.member_code, new_class)
+    _check_member_schedule_conflict(db, booking_data.member_code, classvar)
     member.remaining_credits-=1
     try:
         db.add(new_booking)
