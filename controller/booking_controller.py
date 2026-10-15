@@ -122,12 +122,18 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
             status_code= status.HTTP_406_NOT_ACCEPTABLE,
             detail="the member don't have enough credits" 
         )
+    if classvar.available_spots<=0:
+                raise HTTPException(
+            status_code= status.HTTP_406_NOT_ACCEPTABLE,
+            detail="the class is full" 
+        )
     new_booking = Booking(
         member_code=booking_data.member_code,
         class_id=booking_data.class_id,
     )
     _check_member_schedule_conflict(db, booking_data.member_code, classvar)
     member.remaining_credits-=1
+    classvar.available_spots-=1
     try:
         db.add(new_booking)
         db.commit()
@@ -141,44 +147,44 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
         )
 
 
-def update_booking(db: Session, booking_id: int, booking_data: BookingUpdate) -> Booking:
-    booking = get_booking_by_id(db, booking_id)
-    try:
-        new_member_code = booking_data.member_code if booking_data.member_code is not None else booking.member_code
-        new_class_id = booking_data.class_id if booking_data.class_id is not None else booking.class_id
+# def update_booking(db: Session, booking_id: int, booking_data: BookingUpdate) -> Booking:
+#     booking = get_booking_by_id(db, booking_id)
+#     try:
+#         new_member_code = booking_data.member_code if booking_data.member_code is not None else booking.member_code
+#         new_class_id = booking_data.class_id if booking_data.class_id is not None else booking.class_id
 
-        if (new_member_code != booking.member_code) or (new_class_id != booking.class_id):
-            _ensure_member_exists(db, new_member_code)
-            new_class = _ensure_class_exists(db, new_class_id)
+#         if (new_member_code != booking.member_code) or (new_class_id != booking.class_id):
+#             _ensure_member_exists(db, new_member_code)
+#             new_class = _ensure_class_exists(db, new_class_id)
 
-            duplicate = db.query(Booking).filter(
-                Booking.member_code == new_member_code,
-                Booking.class_id == new_class_id,
-                Booking.id != booking_id
-            ).first()
-            if duplicate:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Member {new_member_code} already booked class {new_class_id}"
-                )
+#             duplicate = db.query(Booking).filter(
+#                 Booking.member_code == new_member_code,
+#                 Booking.class_id == new_class_id,
+#                 Booking.id != booking_id
+#             ).first()
+#             if duplicate:
+#                 raise HTTPException(
+#                     status_code=status.HTTP_409_CONFLICT,
+#                     detail=f"Member {new_member_code} already booked class {new_class_id}"
+#                 )
 
-            _check_member_schedule_conflict(
-                db, new_member_code, new_class, exclude_booking_id=booking_id
-            )
+#             _check_member_schedule_conflict(
+#                 db, new_member_code, new_class, exclude_booking_id=booking_id
+#             )
 
-            booking.member_code = new_member_code
-            booking.class_id = new_class_id
-        db.commit()
-        db.refresh(booking)
-        return booking
-    except HTTPException:
-        raise
-    except SQLAlchemyError as error:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in updating booking {str(error)}"
-        )
+#             booking.member_code = new_member_code
+#             booking.class_id = new_class_id
+#         db.commit()
+#         db.refresh(booking)
+#         return booking
+#     except HTTPException:
+#         raise
+#     except SQLAlchemyError as error:
+#         db.rollback()
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Database error in updating booking {str(error)}"
+#         )
 
 
 def delete_booking(db: Session, booking_id: int) -> None:
