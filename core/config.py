@@ -15,3 +15,6 @@ APP_DESCRIPTION: str = os.getenv(
 # Database configuration
 DATABASE_NAME: str = os.getenv("DATABASE_NAME", "gymges.sqlite3")
 DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///./{DATABASE_NAME}")
+
+# Cloudinary configuration
+CLOUDINARY_URL: str = os.getenv("CLOUDINARY_URL", "")
