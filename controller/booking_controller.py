@@ -204,7 +204,14 @@ def delete_booking(db: Session, booking_id: int) -> None:
             status_code= status.HTTP_404_NOT_FOUND,
             detail="member not found"
         )
+    classvar = db.query(WeeklyClass).filter(WeeklyClass.id == booking.class_id).first()
+    if classvar and datetime.now() >= classvar.activity_date - timedelta(hours=2):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="cannot cancel a booking within 2 hours of the class start"
+        )
     member.remaining_credits+=1
+    classvar.available_spots+=1
         
     try:
         db.delete(booking)
