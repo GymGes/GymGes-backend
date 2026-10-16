@@ -115,7 +115,7 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="class not found"
+            detail=f"Member with code {booking_data.member_code} not found"
         ) 
     duplicate = db.query(Booking).filter(
         Booking.member_code == booking_data.member_code,
