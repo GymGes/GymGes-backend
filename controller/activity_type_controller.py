@@ -1,10 +1,11 @@
 from typing import List, Optional
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from models.activity_type_model import ActivityType
 from schema.activity_type_schema import ActivityTypeCreate, ActivityTypeUpdate
+from service import cloudinary_service
 
 
 def get_all_activity_types(db: Session, skip: int = 0, limit: int = 100) -> List[ActivityType]:
@@ -23,12 +24,24 @@ def get_activity_type_by_id(db: Session, activity_type_id: int) -> Optional[Acti
                             detail=f"Database error while retrieving activity type {activity_type_id}: {str(error)}")
 
 
-def create_activity_type(db: Session, data: ActivityTypeCreate) -> ActivityType:
+def create_activity_type(db: Session, data: ActivityTypeCreate, image: UploadFile | None = None) -> ActivityType:
+    image_url = None
+    image_public_id = None
+    if image is not None:
+        result = cloudinary_service.upload_image(
+            image.file,
+            folder="gymges/activities"
+        )
+        image_url = result["secure_url"]
+        image_public_id = result["public_id"]
+
     new_activity_type = ActivityType(
         name=data.name,
         duration=data.duration,
         max_students=data.max_students,
-        description=data.description
+        description=data.description,
+        image_url=image_url,
+        image_public_id=image_public_id
     )
     try:
         db.add(new_activity_type)
@@ -41,12 +54,22 @@ def create_activity_type(db: Session, data: ActivityTypeCreate) -> ActivityType:
                             detail=f"Database error while creating activity type: {str(error)}")
 
 
-def update_activity_type(db: Session, activity_type_id: int, data: ActivityTypeUpdate) -> Optional[ActivityType]:
+def update_activity_type(db: Session, activity_type_id: int, data: ActivityTypeUpdate,
+                         image: UploadFile | None = None) -> Optional[ActivityType]:
     existing = get_activity_type_by_id(db, activity_type_id)
     if not existing:
         return None
-    for field, value in data.model_dump(exclude_unset=True).items():
+    for field, value in data.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(existing, field, value)
+    if image is not None:
+        if existing.image_public_id:
+            cloudinary_service.delete_image(existing.image_public_id)
+        result = cloudinary_service.upload_image(
+            image.file,
+            folder="gymges/activities"
+        )
+        existing.image_url = result["secure_url"]
+        existing.image_public_id = result["public_id"]
     try:
         db.commit()
         db.refresh(existing)
@@ -62,6 +85,8 @@ def delete_activity_type(db: Session, activity_type_id: int) -> bool:
     if not existing:
         return False
     try:
+        if existing.image_public_id:
+            cloudinary_service.delete_image(existing.image_public_id)
         db.delete(existing)
         db.commit()
         return True
