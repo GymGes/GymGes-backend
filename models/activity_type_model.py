@@ -14,6 +14,8 @@ class ActivityType(Base):
     duration = Column(Integer, nullable=False)
     max_students = Column(Integer, nullable=False)
     description = Column(String(255), nullable=True)
+    image_url = Column(String, nullable=True)
+    image_public_id = Column(String, nullable=True)
     weekly_classes = relationship(          
         "WeeklyClass",
         back_populates="activity_type",
