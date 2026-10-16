@@ -117,6 +117,15 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="class not found"
         ) 
+    duplicate = db.query(Booking).filter(
+        Booking.member_code == booking_data.member_code,
+        Booking.class_id == booking_data.class_id
+    ).first()
+    if duplicate:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="the member already has a booking for this class"
+        )
     if member.remaining_credits<=0:
         raise HTTPException(
             status_code= status.HTTP_406_NOT_ACCEPTABLE,
