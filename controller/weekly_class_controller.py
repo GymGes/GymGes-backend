@@ -71,8 +71,11 @@ def _check_teacher_schedule_conflict(
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=(
-                    f"Teacher {teacher_id} already has a class from "
-                    f"{existing_start} to {existing_end} that overlaps with the requested slot"
+                    f"El profesor ya tiene una clase el "
+                    f"{existing_start.strftime('%d/%m/%Y')}, "
+                    f"de {existing_start.strftime('%H:%M')} "
+                    f"a {existing_end.strftime('%H:%M')}. "
+                    "El horario solicitado se solapa con esa clase."
                 )
             )
 
