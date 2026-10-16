@@ -31,4 +31,7 @@ class ActivityTypeUpdate(BaseModel):
 class ActivityTypeResponse(ActivityTypeBase):
     """Schema representing the serialized response returned to API consumers."""
     id: int = Field(..., description="Unique database identifier", examples=[1])
+    image_url: Optional[str] = Field(None,
+                                     description="URL of the activity type image",
+                                     examples=["https://res.cloudinary.com/demo/image/upload/sample.jpg"])
     model_config = ConfigDict(from_attributes=True)
