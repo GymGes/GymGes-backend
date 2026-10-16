@@ -14,6 +14,7 @@ ENV/
 # Database
 *.sqlite3
 *.db
+seed.py
 
 # Environment variables (secrets)
 .env
@@ -24,3 +25,4 @@ ENV/
 *.swp
 *.swo
 .DS_Store
+
