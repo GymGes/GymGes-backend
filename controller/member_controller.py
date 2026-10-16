@@ -17,13 +17,13 @@ def get_all_members(db: Session, skip: int = 0, limit: int = 100) -> List[Member
         )
 
 
-def get_member_by_id(db: Session, member_id: int) -> Member:
+def get_member_by_id(db: Session, code: str) -> Member:
     try:
-        member = db.query(Member).filter(member.id == member_id).first()
+        member = db.query(Member).filter(Member.code == code).first()
         if not member:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"member with id {member_id} not found"
+                detail=f"member with code {code} not found"
             )
         return member
     except SQLAlchemyError as error:
@@ -68,10 +68,10 @@ def create_member(db: Session, member_data: MemberCreate) -> Member:
 
 def update_member(
     db: Session,
-    member_id: str,
+    code: str,
     member_data: MemberUpdate
 ) -> Member:
-    member = get_member_by_id(db, member_id)
+    member = get_member_by_id(db, code)
 
     try:
         member.first_name = member_data.first_name
@@ -93,8 +93,8 @@ def update_member(
         )
 
 
-def delete_member(db: Session, member_id: str) -> None:
-    member = get_member_by_id(db, member_id)
+def delete_member(db: Session, code: str) -> None:
+    member = get_member_by_id(db, code)
 
     try:
         db.delete(member)
