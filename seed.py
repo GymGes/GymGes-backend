@@ -73,34 +73,7 @@ TEACHERS = [
 MEMBERS = [
     ("12345678Z", "Sara", "Rodríguez", 28, "Toledo", "Av. Reconquista 12", 1, 28),
     ("48291034X", "Lucía", "García", 31, "Toledo", "Calle Comercio 5", 1, 30),
-]
-
-# teacher_id, activity_type_id, HH:MM, available_spots
-# Patrón diario original del fichero de referencia.
-BASE_SLOTS = [
-    (2, 2, "07:30", 4),
-    (1, 1, "09:00", 16),
-    (3, 3, "09:30", 0),
-    (4, 4, "10:00", 4),
-    (1, 1, "11:30", 5),
-    (2, 2, "12:00", 6),
-    (4, 4, "13:30", 0),
-    (1, 1, "18:00", 0),
-    (3, 3, "18:00", 2),
-    (4, 4, "19:00", 3),
-    (2, 2, "19:15", 3),
-    (1, 1, "20:15", 4),
-]
-
-# Clases extra para las dos actividades añadidas (Vinyasa Yoga y Kettlebell
-# & Core), en el mismo estilo que el resto del horario.
-EXTRA_SLOTS = [
-    (1, 5, "08:15", 10),
-    (2, 5, "17:00", 6),
-    (3, 5, "20:45", 4),
-    (2, 6, "08:45", 12),
-    (3, 6, "17:30", 8),
-    (4, 6, "21:00", 5),
+    ("51928374T", "Pablo", "Núñez", 24, "Toledo", "Calle Nueva 3", 1, 0),
 ]
 
 # El horario se genera de forma relativa al día en que se siembra: las clases
@@ -109,7 +82,32 @@ EXTRA_SLOTS = [
 BASE_DAY = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 FIRST_DAY = BASE_DAY + timedelta(days=1)
 PAST_DAY = BASE_DAY - timedelta(days=1)
-DAYS = 14
+
+# day_offset, teacher_id, activity_type_id, HH:MM, available_spots
+SCHEDULE = [
+    # Mañana (día 0)
+    (0, 2, 2, "07:30", 4),
+    (0, 1, 1, "09:00", 16),
+    (0, 3, 3, "09:30", 0),
+    (0, 4, 4, "10:00", 4),
+    (0, 1, 1, "11:30", 5),
+    (0, 2, 2, "12:00", 6),
+    (0, 2, 5, "17:00", 6),
+    (0, 3, 3, "18:00", 2),
+    (0, 1, 1, "20:15", 4),
+    (0, 4, 6, "21:00", 5),
+    # Mañana + 1 (día 1)
+    (1, 2, 6, "08:45", 12),
+    (1, 1, 1, "09:00", 16),
+    (1, 3, 6, "17:30", 8),
+    (1, 3, 3, "18:00", 2),
+    (1, 3, 5, "20:45", 4),
+    # Mañana + 2 (día 2)
+    (2, 1, 5, "08:15", 10),
+    (2, 1, 1, "09:00", 16),
+    (2, 2, 2, "12:00", 6),
+    (2, 2, 2, "19:15", 3),
+]
 
 # teacher_id, activity_type_id, HH:MM, available_spots
 PAST_SLOT = (1, 1, "10:00", 16)
@@ -171,19 +169,18 @@ def seed_if_empty() -> bool:
         db.add(past_class)
         classes[(past_when, PAST_SLOT[1])] = past_class
 
-        for day in range(DAYS):
+        for day, teacher_id, activity_id, hhmm, spots in SCHEDULE:
             date = FIRST_DAY + timedelta(days=day)
-            for teacher_id, activity_id, hhmm, spots in BASE_SLOTS + EXTRA_SLOTS:
-                hour, minute = (int(part) for part in hhmm.split(":"))
-                when = date.replace(hour=hour, minute=minute)
-                weekly_class = WeeklyClass(
-                    teacher_id=teacher_id,
-                    activity_type_id=activity_id,
-                    activity_date=when,
-                    available_spots=spots,
-                )
-                db.add(weekly_class)
-                classes[(when, activity_id)] = weekly_class
+            hour, minute = (int(part) for part in hhmm.split(":"))
+            when = date.replace(hour=hour, minute=minute)
+            weekly_class = WeeklyClass(
+                teacher_id=teacher_id,
+                activity_type_id=activity_id,
+                activity_date=when,
+                available_spots=spots,
+            )
+            db.add(weekly_class)
+            classes[(when, activity_id)] = weekly_class
 
         db.flush()
 
