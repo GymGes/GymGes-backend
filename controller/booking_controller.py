@@ -103,46 +103,64 @@ def get_booking_by_id(db: Session, booking_id: int) -> Booking:
 
 
 def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
-    classvar= db.query(WeeklyClass).filter(WeeklyClass.id == booking_data.class_id).first()
+    if (
+        booking_data.member_code is None
+        or not str(booking_data.member_code).strip()
+        or booking_data.class_id is None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
+    classvar = db.query(WeeklyClass).filter(WeeklyClass.id == booking_data.class_id).first()
     member = db.query(Member).filter(Member.code == booking_data.member_code).first()
 
     if classvar is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="class not found"
-        ) 
-    
+        )
+
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Member with code {booking_data.member_code} not found"
-        ) 
+        )
+
     duplicate = db.query(Booking).filter(
         Booking.member_code == booking_data.member_code,
         Booking.class_id == booking_data.class_id
     ).first()
+
     if duplicate:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="the member already has a booking for this class"
         )
-    if member.remaining_credits<=0:
+
+    if member.remaining_credits <= 0:
         raise HTTPException(
-            status_code= status.HTTP_406_NOT_ACCEPTABLE,
-            detail="the member don't have enough credits" 
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="the member don't have enough credits"
         )
-    if classvar.available_spots<=0:
-                raise HTTPException(
-            status_code= status.HTTP_406_NOT_ACCEPTABLE,
-            detail="the class is full" 
+
+    if classvar.available_spots <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="the class is full"
         )
+
     new_booking = Booking(
         member_code=booking_data.member_code,
         class_id=booking_data.class_id,
     )
+
     _check_member_schedule_conflict(db, booking_data.member_code, classvar)
-    member.remaining_credits-=1
-    classvar.available_spots-=1
+
+    member.remaining_credits -= 1
+    classvar.available_spots -= 1
+
     try:
         db.add(new_booking)
         db.commit()
@@ -154,7 +172,6 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error in creating booking {str(error)}"
         )
-
 
 # def update_booking(db: Session, booking_id: int, booking_data: BookingUpdate) -> Booking:
 #     booking = get_booking_by_id(db, booking_id)

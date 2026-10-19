@@ -7,6 +7,15 @@ from schema.plan_schema import PlanCreate, PlanUpdate
 
 
 def create_plan(db: Session, plan_data: PlanCreate):
+    if (
+        plan_data.name is None or not str(plan_data.name).strip()
+        or plan_data.credits is None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
     db_plan = Plan(
         name=plan_data.name,
         credits=plan_data.credits
@@ -40,6 +49,20 @@ def update_plan(db: Session, plan_id: int, plan_data: PlanUpdate):
 
     update_data = plan_data.model_dump(exclude_unset=True)
 
+    if "name" in update_data and (
+        update_data["name"] is None or not str(update_data["name"]).strip()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
+    if "credits" in update_data and update_data["credits"] is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
     for field, value in update_data.items():
         setattr(plan, field, value)
 
@@ -47,15 +70,3 @@ def update_plan(db: Session, plan_id: int, plan_data: PlanUpdate):
     db.refresh(plan)
 
     return plan
-
-
-def delete_plan(db: Session, plan_id: int):
-    plan = get_plan(db, plan_id)
-
-    db.delete(plan)
-    db.commit()
-
-    return {
-        "message": "Plan deleted successfully",
-        "plan_id": plan_id
-    }

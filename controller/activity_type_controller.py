@@ -25,8 +25,19 @@ def get_activity_type_by_id(db: Session, activity_type_id: int) -> Optional[Acti
 
 
 def create_activity_type(db: Session, data: ActivityTypeCreate, image: UploadFile | None = None) -> ActivityType:
+    if (
+        data.name is None or not str(data.name).strip()
+        or data.duration is None
+        or data.max_students is None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
     image_url = None
     image_public_id = None
+
     if image is not None:
         result = cloudinary_service.upload_image(
             image.file,
@@ -43,6 +54,7 @@ def create_activity_type(db: Session, data: ActivityTypeCreate, image: UploadFil
         image_url=image_url,
         image_public_id=image_public_id
     )
+
     try:
         db.add(new_activity_type)
         db.commit()
@@ -50,35 +62,73 @@ def create_activity_type(db: Session, data: ActivityTypeCreate, image: UploadFil
         return new_activity_type
     except SQLAlchemyError as error:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Database error while creating activity type: {str(error)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error while creating activity type: {str(error)}"
+        )
 
 
 def update_activity_type(db: Session, activity_type_id: int, data: ActivityTypeUpdate,
                          image: UploadFile | None = None) -> Optional[ActivityType]:
     existing = get_activity_type_by_id(db, activity_type_id)
+
     if not existing:
         return None
-    for field, value in data.model_dump(exclude_unset=True, exclude_none=True).items():
+
+    raw_update_data = data.model_dump(exclude_unset=True)
+
+    if "name" in raw_update_data and (
+        raw_update_data["name"] is None
+        or not str(raw_update_data["name"]).strip()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
+    if "duration" in raw_update_data and raw_update_data["duration"] is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
+    if "max_students" in raw_update_data and raw_update_data["max_students"] is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
+    update_data = {
+        field: value
+        for field, value in raw_update_data.items()
+        if value is not None
+    }
+
+    for field, value in update_data.items():
         setattr(existing, field, value)
+
     if image is not None:
         if existing.image_public_id:
             cloudinary_service.delete_image(existing.image_public_id)
+
         result = cloudinary_service.upload_image(
             image.file,
             folder="gymges/activities"
         )
+
         existing.image_url = result["secure_url"]
         existing.image_public_id = result["public_id"]
+
     try:
         db.commit()
         db.refresh(existing)
         return existing
     except SQLAlchemyError as error:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Database error while updating activity type {activity_type_id}: {str(error)}")
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error while updating activity type {activity_type_id}: {str(error)}"
+        )
 
 def delete_activity_type(db: Session, activity_type_id: int) -> bool:
     existing = get_activity_type_by_id(db, activity_type_id)
