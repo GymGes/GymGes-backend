@@ -7,7 +7,6 @@ from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from uvicorn import Config
 from routes.activity_type_routes import router as  activity_type_router
 from routes.booking_routes import router as  booking_router
 from routes.member_routes import router as  member_router
@@ -28,16 +27,7 @@ async def lifespan(app: FastAPI):
         raise
     yield
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    try:
-        alembic_cfg = Config(str(Path(__file__).parent / "alembic.ini"))
-        command.upgrade(alembic_cfg, "head")
-        
-    except BaseException:
-        traceback.print_exc()
-        raise
-    yield
+
 
 app = FastAPI(
     title="GymGes API",
