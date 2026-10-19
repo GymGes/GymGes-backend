@@ -109,6 +109,7 @@ SCHEDULE = [
     (2, 2, 2, "19:15", 3),
 ]
 
+
 # teacher_id, activity_type_id, HH:MM, available_spots
 PAST_SLOT = (1, 1, "10:00", 16)
 
