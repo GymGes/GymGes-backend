@@ -70,3 +70,14 @@ def update_plan(db: Session, plan_id: int, plan_data: PlanUpdate):
     db.refresh(plan)
 
     return plan
+
+def delete_plan(db: Session, plan_id: int):
+    plan = get_plan(db, plan_id)
+
+    db.delete(plan)
+    db.commit()
+
+    return {
+        "message": "Plan deleted successfully",
+        "plan_id": plan_id
+    }
