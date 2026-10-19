@@ -2,9 +2,10 @@
 
 Se siembran automáticamente en el arranque (ver ``main.py``) solo si la
 base de datos está vacía, de modo que sobreviven al disco efímero de
-Render Free. Los datos son idénticos al fichero de referencia
+Render Free. El catálogo y el horario siguen el fichero de referencia
 ``gymges.sqlite3`` más las dos actividades extra del catálogo del index
-(Vinyasa Yoga y Kettlebell & Core).
+(Vinyasa Yoga y Kettlebell & Core); las fechas del horario se generan de
+forma relativa al día en que se siembra.
 """
 
 from datetime import datetime, timedelta
@@ -102,13 +103,26 @@ EXTRA_SLOTS = [
     (4, 6, "21:00", 5),
 ]
 
-FIRST_DAY = datetime(2026, 10, 12)
+# El horario se genera de forma relativa al día en que se siembra: las clases
+# empiezan mañana (FIRST_DAY) y se añade una clase antigua (PAST_DAY) para
+# poder demostrar el borrado de reservas de clases pasadas.
+BASE_DAY = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+FIRST_DAY = BASE_DAY + timedelta(days=1)
+PAST_DAY = BASE_DAY - timedelta(days=1)
 DAYS = 14
+
+# teacher_id, activity_type_id, HH:MM, available_spots
+PAST_SLOT = (1, 1, "10:00", 16)
 
 # member_code, activity_date, activity_type_id
 BOOKINGS = [
-    ("12345678Z", datetime(2026, 10, 16, 9, 0), 1),
-    ("12345678Z", datetime(2026, 10, 17, 12, 0), 2),
+    # Borrables: clases futuras
+    ("12345678Z", FIRST_DAY + timedelta(days=2, hours=9), 1),
+    ("12345678Z", FIRST_DAY + timedelta(hours=20, minutes=15), 1),
+    # No borrable: mañana 11:30 (dentro de las 2h antes de la clase)
+    ("48291034X", FIRST_DAY + timedelta(hours=11, minutes=30), 1),
+    # Reserva antigua: clase de ayer, se borra sin reembolsar créditos
+    ("12345678Z", PAST_DAY + timedelta(hours=10), 1),
 ]
 
 
@@ -145,6 +159,18 @@ def seed_if_empty() -> bool:
         db.flush()
 
         classes = {}
+
+        past_hour, past_minute = (int(part) for part in PAST_SLOT[2].split(":"))
+        past_when = PAST_DAY.replace(hour=past_hour, minute=past_minute)
+        past_class = WeeklyClass(
+            teacher_id=PAST_SLOT[0],
+            activity_type_id=PAST_SLOT[1],
+            activity_date=past_when,
+            available_spots=PAST_SLOT[3],
+        )
+        db.add(past_class)
+        classes[(past_when, PAST_SLOT[1])] = past_class
+
         for day in range(DAYS):
             date = FIRST_DAY + timedelta(days=day)
             for teacher_id, activity_id, hhmm, spots in BASE_SLOTS + EXTRA_SLOTS:
