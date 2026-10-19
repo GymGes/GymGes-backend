@@ -81,6 +81,16 @@ def _check_teacher_schedule_conflict(
 
 
 def create_weekly_class(db: Session, data: WeeklyClassCreate) -> WeeklyClass:
+    if (
+        data.teacher_id is None
+        or data.activity_type_id is None
+        or data.activity_date is None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Datos incompletos"
+        )
+
     _ensure_teacher_exists(db, data.teacher_id)
     activity_type = _ensure_activity_type_exists(db, data.activity_type_id)
     _check_teacher_schedule_conflict(db, data.teacher_id, data.activity_date, activity_type.duration)
@@ -91,6 +101,7 @@ def create_weekly_class(db: Session, data: WeeklyClassCreate) -> WeeklyClass:
         activity_date=data.activity_date,
         available_spots=activity_type.max_students
     )
+
     try:
         db.add(new_weekly_class)
         db.commit()
@@ -102,7 +113,6 @@ def create_weekly_class(db: Session, data: WeeklyClassCreate) -> WeeklyClass:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error while creating weekly class: {str(error)}"
         )
-
 
 # def update_weekly_class(db: Session, weekly_class_id: int, data: WeeklyClassUpdate) -> Optional[WeeklyClass]:
 #     existing = get_weekly_class_by_id(db, weekly_class_id)
