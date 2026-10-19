@@ -28,7 +28,6 @@ async def lifespan(app: FastAPI):
     yield
 
 
-
 app = FastAPI(
     title="GymGes API",
     version="1.0.0",
