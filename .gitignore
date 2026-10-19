@@ -14,7 +14,6 @@ ENV/
 # Database
 *.sqlite3
 *.db
-seed.py
 
 # Environment variables (secrets)
 .env
