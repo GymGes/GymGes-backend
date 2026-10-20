@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -26,8 +26,8 @@ router = APIRouter(
 
 @router.get("/", response_model=List[TeacherResponse])
 def read_teachers(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(1000, ge=1, le=1000),
     db: Session = Depends(get_db)
 ):
     return get_all_teachers(db, skip, limit)

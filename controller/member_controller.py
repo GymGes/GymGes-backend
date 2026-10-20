@@ -9,7 +9,7 @@ from schema.member_schema import MemberCreate, MemberUpdate
 
 def get_all_members(db: Session, skip: int = 0, limit: int = 100) -> List[Member]:
     try:
-        return db.query(Member).offset(skip).limit(limit).all()
+        return db.query(Member).order_by(Member.code).offset(skip).limit(limit).all()
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
