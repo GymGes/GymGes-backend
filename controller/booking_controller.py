@@ -128,6 +128,12 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
             detail="class not found"
         )
 
+    if classvar.activity_date < datetime.now():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se puede reservar una clase que ya ha comenzado"
+        )
+
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
