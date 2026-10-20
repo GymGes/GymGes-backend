@@ -26,7 +26,7 @@ router = APIRouter(
 )
 def read_weekly_classes(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(100, ge=1, le=100, description="Maximum number of records to return"),
+    limit: int = Query(1000, ge=1, le=1000, description="Maximum number of records to return"),
     db: Session = Depends(get_db)
 ):
     return weekly_class_controller.get_all_weekly_classes(db=db, skip=skip, limit=limit)
