@@ -6,8 +6,6 @@ from sqlalchemy.orm import Session
 from models.activity_type_model import ActivityType
 from schema.activity_type_schema import ActivityTypeCreate, ActivityTypeUpdate
 from service import cloudinary_service
-from datetime import datetime, timedelta
-from models.weekly_class_model import WeeklyClass
 
 
 def get_all_activity_types(db: Session, skip: int = 0, limit: int = 100) -> List[ActivityType]:
@@ -134,52 +132,15 @@ def update_activity_type(db: Session, activity_type_id: int, data: ActivityTypeU
 
 def delete_activity_type(db: Session, activity_type_id: int) -> bool:
     existing = get_activity_type_by_id(db, activity_type_id)
-
     if not existing:
         return False
-
-    now = datetime.now()
-    restrictionLimit = now + timedelta(hours=2)
-
-    upcomingClass = (
-        db.query(WeeklyClass)
-        .filter(
-            WeeklyClass.activity_type_id == activity_type_id,
-            WeeklyClass.activity_date >= now,
-            WeeklyClass.activity_date < restrictionLimit,
-        )
-        .order_by(WeeklyClass.activity_date.asc())
-        .first()
-    )
-
-    if upcomingClass:
-        classDate = upcomingClass.activity_date.strftime("%d/%m/%Y")
-        classTime = upcomingClass.activity_date.strftime("%H:%M")
-
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                f"No se puede eliminar la actividad «{existing.name}» "
-                f"porque tiene una sesión programada el {classDate} "
-                f"a las {classTime}. No se pueden eliminar actividades "
-                f"cuando faltan menos de dos horas para el comienzo."
-            ),
-        )
-
     try:
         if existing.image_public_id:
             cloudinary_service.delete_image(existing.image_public_id)
-
         db.delete(existing)
         db.commit()
         return True
-
     except SQLAlchemyError as error:
         db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=(
-                f"Database error while deleting activity type "
-                f"{activity_type_id}: {str(error)}"
-            ),
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Database error while deleting activity type {activity_type_id}: {str(error)}")
