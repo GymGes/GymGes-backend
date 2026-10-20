@@ -101,6 +101,12 @@ def get_booking_by_id(db: Session, booking_id: int) -> Booking:
             detail=f"Database error in fetching booking {str(error)}"
         )
 
+def get_bookings_by_member(db: Session, member_code: str):
+    return (
+        db.query(Booking)
+        .filter(Booking.socio_codigo == member_code)
+        .all()
+    )
 
 def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
     if (

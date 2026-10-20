@@ -24,6 +24,21 @@ def read_bookings(
 ):
     return controller.get_all_bookings(db=db, skip=skip, limit=limit)
 
+@router.get(
+    "/member/{member_code}",
+    response_model=List[BookingResponse],
+    summary="Get bookings by member",
+    description="Return all bookings for a specific member"
+)
+def read_bookings_by_member(
+    member_code: str,
+    db: Session = Depends(get_db)
+):
+    return controller.get_bookings_by_member(
+        db=db,
+        member_code=member_code
+    )
+
 @router.post(
     "/",
     response_model=BookingResponse,
