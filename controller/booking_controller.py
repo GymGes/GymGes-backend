@@ -104,7 +104,7 @@ def get_booking_by_id(db: Session, booking_id: int) -> Booking:
 def get_bookings_by_member(db: Session, member_code: str):
     return (
         db.query(Booking)
-        .filter(Booking.socio_codigo == member_code)
+        .filter(Booking.member_code == member_code)
         .all()
     )
 
