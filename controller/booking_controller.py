@@ -235,7 +235,6 @@ def delete_booking(db: Session, booking_id: int) -> None:
             detail="cannot cancel a booking within 2 hours of the class start"
         )
     if classvar is not None and now < classvar.activity_date:
-        member.remaining_credits+=1
         classvar.available_spots+=1
         
     try:

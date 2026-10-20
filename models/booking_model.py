@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, String, ForeignKey, event, select, update
 from sqlalchemy.orm import relationship
 
 from core.database import Base
@@ -19,5 +21,21 @@ class Booking(Base):
 
     def __repr__(self) -> str:
         return f"<Booking(id={self.id}, member_code={self.member_code}, class_id={self.class_id})>"
+
+
+@event.listens_for(Booking, "before_delete")
+def _refund_credit_on_cascade_delete(mapper, connection, target: Booking) -> None:
+    activity_date = connection.execute(
+        select(WeeklyClass.activity_date).where(WeeklyClass.id == target.class_id)
+    ).scalar_one_or_none()
+
+    if activity_date is None or activity_date <= datetime.now():
+        return
+
+    connection.execute(
+        update(Member)
+        .where(Member.code == target.member_code)
+        .values(remaining_credits=Member.remaining_credits + 1)
+    )
 
 
