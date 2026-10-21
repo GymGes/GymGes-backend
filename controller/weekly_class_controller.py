@@ -10,7 +10,7 @@ from core.config import now_local
 from models.weekly_class_model import WeeklyClass
 from models.teacher_model import Teacher
 from models.activity_type_model import ActivityType
-from schema.weekly_class_schema import WeeklyClassCreate, WeeklyClassUpdate
+from schema.weekly_class_schema import WeeklyClassCreate
 
 
 def get_all_weekly_classes(db: Session, skip: int = 0, limit: int = 100) -> List[WeeklyClass]:

@@ -18,26 +18,26 @@ def _get_class_interval(weekly_class: WeeklyClass) -> Tuple[datetime, datetime]:
     return start, start + timedelta(minutes=duration)
 
 
-def _ensure_member_exists(db: Session, member_code: str) -> None:
-    if not db.query(Member).filter(Member.code == member_code).first():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Member with code {member_code} not found"
-        )
+# def _ensure_member_exists(db: Session, member_code: str) -> None:
+#     if not db.query(Member).filter(Member.code == member_code).first():
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Member with code {member_code} not found"
+#         )
 
 
-def _ensure_class_exists(db: Session, class_id: int) -> WeeklyClass:
-    weekly_class = db.query(WeeklyClass).filter(WeeklyClass.id == class_id).first()
-    if not weekly_class:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Weekly class with id {class_id} not found"
-        )
+# def _ensure_class_exists(db: Session, class_id: int) -> WeeklyClass:
+#     weekly_class = db.query(WeeklyClass).filter(WeeklyClass.id == class_id).first()
+#     if not weekly_class:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Weekly class with id {class_id} not found"
+#         )
     # Asegurar que la relación activity_type está cargada para calcular el fin
-    if weekly_class.activity_type is None:
-        # Recarga por si la sesión expiró la relación
-        db.refresh(weekly_class, attribute_names=["activity_type"])
-    return weekly_class
+    # if weekly_class.activity_type is None:
+    #     # Recarga por si la sesión expiró la relación
+    #     db.refresh(weekly_class, attribute_names=["activity_type"])
+    # return weekly_class
 
 
 def _check_member_schedule_conflict(
