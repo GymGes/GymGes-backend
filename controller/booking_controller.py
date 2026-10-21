@@ -227,30 +227,43 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
 
 def delete_booking(db: Session, booking_id: int) -> None:
     booking = get_booking_by_id(db, booking_id)
-    member= db.query(Member).filter(Member.code == booking.member_code).first()
+
+    member = db.query(Member).filter(
+        Member.code == booking.member_code
+    ).first()
+
     if member is None:
         raise HTTPException(
-            status_code= status.HTTP_404_NOT_FOUND,
-            detail="member not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Member not found"
         )
-    classvar = db.query(WeeklyClass).filter(WeeklyClass.id == booking.class_id).first()
-    now = datetime.now()
-    if classvar and classvar.activity_date - timedelta(hours=2) <= now < classvar.activity_date:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="cannot cancel a booking within 2 hours of the class start"
-        )
-    if classvar is not None and now < classvar.activity_date:
-        classvar.available_spots+=1
-        
+
+    classvar = db.query(WeeklyClass).filter(
+        WeeklyClass.id == booking.class_id
+    ).first()
+
+    if classvar is not None:
+        now = datetime.now()
+        cancellation_deadline = classvar.activity_date - timedelta(hours=2)
+
+        # Impedir cancelar si quedan 2 horas o menos
+        if now >= cancellation_deadline:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="no se puede cancelar 2 antes del inicio de la clase"
+            )
+
+        # Recuperar una plaza únicamente si la clase aún no ha comenzado
+        classvar.available_spots += 1
+
     try:
         db.delete(booking)
         db.commit()
+
     except SQLAlchemyError as error:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in deleting booking {str(error)}"
+            detail=f"Database error deleting booking: {str(error)}"
         )
-
     
