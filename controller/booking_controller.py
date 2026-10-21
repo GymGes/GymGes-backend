@@ -128,6 +128,12 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
             detail="class not found"
         )
 
+    if classvar.activity_date < datetime.now():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se puede reservar una clase que ya ha comenzado"
+        )
+
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -235,7 +241,6 @@ def delete_booking(db: Session, booking_id: int) -> None:
             detail="cannot cancel a booking within 2 hours of the class start"
         )
     if classvar is not None and now < classvar.activity_date:
-        member.remaining_credits+=1
         classvar.available_spots+=1
         
     try:

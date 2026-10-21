@@ -1,5 +1,5 @@
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from fastapi import HTTPException, status
@@ -89,6 +89,12 @@ def create_weekly_class(db: Session, data: WeeklyClassCreate) -> WeeklyClass:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Datos incompletos"
+        )
+
+    if data.activity_date < datetime.now():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se puede crear una clase con fecha anterior a la actual"
         )
 
     _ensure_teacher_exists(db, data.teacher_id)
