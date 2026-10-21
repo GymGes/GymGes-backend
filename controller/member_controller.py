@@ -13,7 +13,7 @@ def get_all_members(db: Session, skip: int = 0, limit: int = 100) -> List[Member
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in fetching members {str(error)}"
+            detail=f"Error de base de datos al obtener los socios: {str(error)}"
         )
 
 
@@ -23,13 +23,13 @@ def get_member_by_id(db: Session, code: str) -> Member:
         if not member:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"member with code {code} not found"
+                detail=f"No se ha encontrado el socio con código {code}"
             )
         return member
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in fetching member {str(error)}"
+            detail=f"Error de base de datos al obtener el socio: {str(error)}"
         )
 
 
@@ -39,7 +39,7 @@ def create_member(db: Session, member_data: MemberCreate) -> Member:
     if plan is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Plan not found"
+            detail="No se ha encontrado el plan"
         )
     new_member = Member(
         code=member_data.code,
@@ -62,7 +62,7 @@ def create_member(db: Session, member_data: MemberCreate) -> Member:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in creating member: {str(error)}"
+            detail=f"Error de base de datos al crear el socio: {str(error)}"
         )
 
 
@@ -89,7 +89,7 @@ def update_member(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in updating member: {str(error)}"
+            detail=f"Error de base de datos al actualizar el socio: {str(error)}"
         )
 
 
@@ -104,5 +104,5 @@ def delete_member(db: Session, code: str) -> None:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in deleting member: {str(error)}"
+            detail=f"Error de base de datos al eliminar el socio: {str(error)}"
         )

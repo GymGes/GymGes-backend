@@ -46,7 +46,7 @@ def read_weekly_class(
     if not weekly_class:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Weekly class with id {weekly_class_id} not found"
+            detail=f"No se ha encontrado la clase con id {weekly_class_id}"
         )
     return weekly_class
 
@@ -82,7 +82,7 @@ def create_new_weekly_class(
 #     if not updated:
 #         raise HTTPException(
 #             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"Weekly class with id {weekly_class_id} not found"
+#             detail=f"No se ha encontrado la clase con id {weekly_class_id}"
 #         )
 #     return updated
 
@@ -101,6 +101,6 @@ def remove_weekly_class(
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Weekly class with id {weekly_class_id} not found"
+            detail=f"No se ha encontrado la clase con id {weekly_class_id}"
         )
     return None

@@ -13,7 +13,7 @@ def get_all_activity_types(db: Session, skip: int = 0, limit: int = 100) -> List
         return db.query(ActivityType).offset(skip).limit(limit).all()
     except SQLAlchemyError as error:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Database error while retrieving activity types: {str(error)}")
+                            detail=f"Error de base de datos al obtener los tipos de actividad: {str(error)}")
 
 
 def get_activity_type_by_id(db: Session, activity_type_id: int) -> Optional[ActivityType]:
@@ -21,7 +21,7 @@ def get_activity_type_by_id(db: Session, activity_type_id: int) -> Optional[Acti
         return db.query(ActivityType).filter(ActivityType.id == activity_type_id).first()
     except SQLAlchemyError as error:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Database error while retrieving activity type {activity_type_id}: {str(error)}")
+                            detail=f"Error de base de datos al obtener el tipo de actividad {activity_type_id}: {str(error)}")
 
 
 def create_activity_type(db: Session, data: ActivityTypeCreate, image: UploadFile | None = None) -> ActivityType:
@@ -64,7 +64,7 @@ def create_activity_type(db: Session, data: ActivityTypeCreate, image: UploadFil
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while creating activity type: {str(error)}"
+            detail=f"Error de base de datos al crear el tipo de actividad: {str(error)}"
         )
 
 
@@ -127,7 +127,7 @@ def update_activity_type(db: Session, activity_type_id: int, data: ActivityTypeU
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while updating activity type {activity_type_id}: {str(error)}"
+            detail=f"Error de base de datos al actualizar el tipo de actividad {activity_type_id}: {str(error)}"
         )
 
 def delete_activity_type(db: Session, activity_type_id: int) -> bool:
@@ -143,4 +143,4 @@ def delete_activity_type(db: Session, activity_type_id: int) -> bool:
     except SQLAlchemyError as error:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Database error while deleting activity type {activity_type_id}: {str(error)}")
+                            detail=f"Error de base de datos al eliminar el tipo de actividad {activity_type_id}: {str(error)}")

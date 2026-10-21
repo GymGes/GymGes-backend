@@ -19,7 +19,7 @@ def get_all_teachers(
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while retrieving teachers: {str(error)}"
+            detail=f"Error de base de datos al obtener los profesores: {str(error)}"
         )
 
 
@@ -32,7 +32,7 @@ def get_teacher_by_id(
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while retrieving teacher {teacher_id}: {str(error)}"
+            detail=f"Error de base de datos al obtener el profesor {teacher_id}: {str(error)}"
         )
 
 
@@ -53,7 +53,7 @@ def create_teacher(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while creating teacher: {str(error)}"
+            detail=f"Error de base de datos al crear el profesor: {str(error)}"
         )
 
 
@@ -78,7 +78,7 @@ def update_teacher(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while updating teacher {teacher_id}: {str(error)}"
+            detail=f"Error de base de datos al actualizar el profesor {teacher_id}: {str(error)}"
         )
 
 
@@ -99,5 +99,5 @@ def delete_teacher(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while deleting teacher {teacher_id}: {str(error)}"
+            detail=f"Error de base de datos al eliminar el profesor {teacher_id}: {str(error)}"
         )

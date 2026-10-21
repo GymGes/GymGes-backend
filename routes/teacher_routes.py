@@ -43,7 +43,7 @@ def read_teacher(
     if teacher is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Teacher not found"
+            detail="No se ha encontrado el profesor"
         )
 
     return teacher
@@ -72,7 +72,7 @@ def update_existing_teacher(
     if teacher is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Teacher not found"
+            detail="No se ha encontrado el profesor"
         )
 
     return teacher
@@ -88,7 +88,7 @@ def delete_existing_teacher(
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Teacher not found"
+            detail="No se ha encontrado el profesor"
         )
 
     return None
