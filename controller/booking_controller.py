@@ -83,7 +83,7 @@ def get_all_bookings(db: Session, skip: int = 0, limit: int = 100) -> List[Booki
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in fetching bookings {str(error)}"
+            detail=f"Error de base de datos al obtener las reservas: {str(error)}"
         )
 
 
@@ -93,13 +93,13 @@ def get_booking_by_id(db: Session, booking_id: int) -> Booking:
         if not booking:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Booking with id {booking_id} not found"
+                detail=f"No se ha encontrado la reserva con id {booking_id}"
             )
         return booking
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in fetching booking {str(error)}"
+            detail=f"Error de base de datos al obtener la reserva: {str(error)}"
         )
 
 def get_bookings_by_member(db: Session, member_code: str):
@@ -126,7 +126,7 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
     if classvar is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="class not found"
+            detail="No se ha encontrado la clase"
         )
 
     if classvar.activity_date < now_local():
@@ -138,7 +138,7 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Member with code {booking_data.member_code} not found"
+            detail=f"No se ha encontrado el socio con código {booking_data.member_code}"
         )
 
     duplicate = db.query(Booking).filter(
@@ -149,19 +149,19 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
     if duplicate:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="the member already has a booking for this class"
+            detail="El socio ya tiene una reserva para esta clase"
         )
 
     if member.remaining_credits <= 0:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="the member don't have enough credits"
+            detail="El socio no dispone de créditos suficientes"
         )
 
     if classvar.available_spots <= 0:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="the class is full"
+            detail="La clase está completa"
         )
 
     new_booking = Booking(
@@ -183,7 +183,7 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error in creating booking {str(error)}"
+            detail=f"Error de base de datos al crear la reserva: {str(error)}"
         )
 
 # def update_booking(db: Session, booking_id: int, booking_data: BookingUpdate) -> Booking:
@@ -236,7 +236,7 @@ def delete_booking(db: Session, booking_id: int) -> None:
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Member not found"
+            detail="No se ha encontrado el socio"
         )
 
     classvar = db.query(WeeklyClass).filter(
@@ -251,7 +251,7 @@ def delete_booking(db: Session, booking_id: int) -> None:
     if classvar and classvar.activity_date - timedelta(hours=2) <= now < classvar.activity_date:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="cannot cancel a booking within 2 hours of the class start"
+            detail="No se puede cancelar una reserva dentro de las 2 horas previas al comienzo de la clase"
         )
 
     # Recuperar la plaza únicamente si la clase aún no ha comenzado.
@@ -268,6 +268,6 @@ def delete_booking(db: Session, booking_id: int) -> None:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error deleting booking: {str(error)}"
+            detail=f"Error de base de datos al eliminar la reserva: {str(error)}"
         )
     
