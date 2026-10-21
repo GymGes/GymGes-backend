@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from core.config import now_local
 from models.booking_model import Booking
 from models.weekly_class_model import WeeklyClass
 from models.member_model import Member
@@ -128,7 +129,7 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
             detail="class not found"
         )
 
-    if classvar.activity_date < datetime.now():
+    if classvar.activity_date < now_local():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No se puede reservar una clase que ya ha comenzado"
@@ -242,18 +243,21 @@ def delete_booking(db: Session, booking_id: int) -> None:
         WeeklyClass.id == booking.class_id
     ).first()
 
-    if classvar is not None:
-        now = datetime.now()
-        cancellation_deadline = classvar.activity_date - timedelta(hours=2)
+    now = now_local()
 
-        # Impedir cancelar si quedan 2 horas o menos
-        if now >= cancellation_deadline:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="no se puede cancelar 2 antes del inicio de la clase"
-            )
+    # Solo se bloquea la cancelación en la ventana de 2 horas previas al
+    # comienzo de una clase futura. Las clases ya pasadas se pueden eliminar
+    # (sin reembolsar crédito ni plaza).
+    if classvar and classvar.activity_date - timedelta(hours=2) <= now < classvar.activity_date:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="cannot cancel a booking within 2 hours of the class start"
+        )
 
-        # Recuperar una plaza únicamente si la clase aún no ha comenzado
+    # Recuperar la plaza únicamente si la clase aún no ha comenzado.
+    # El reembolso de crédito lo gestiona el evento `before_delete` del
+    # modelo Booking (cubre tanto el borrado directo como el de cascada).
+    if classvar is not None and now < classvar.activity_date:
         classvar.available_spots += 1
 
     try:

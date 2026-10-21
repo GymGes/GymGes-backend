@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from sqlalchemy import Column, Integer, String, ForeignKey, event, select, update
 from sqlalchemy.orm import relationship
 
+from core.config import now_local
 from core.database import Base
 from models.member_model import Member
 from models.weekly_class_model import WeeklyClass
@@ -29,7 +28,7 @@ def _refund_credit_on_cascade_delete(mapper, connection, target: Booking) -> Non
         select(WeeklyClass.activity_date).where(WeeklyClass.id == target.class_id)
     ).scalar_one_or_none()
 
-    if activity_date is None or activity_date <= datetime.now():
+    if activity_date is None or activity_date <= now_local():
         return
 
     connection.execute(
