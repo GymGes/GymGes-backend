@@ -1,9 +1,12 @@
+from datetime import timedelta
 from typing import List, Optional
 from fastapi import HTTPException, status, UploadFile
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from core.config import now_local
 from models.activity_type_model import ActivityType
+from models.weekly_class_model import WeeklyClass
 from schema.activity_type_schema import ActivityTypeCreate, ActivityTypeUpdate
 from service import cloudinary_service
 
@@ -134,6 +137,35 @@ def delete_activity_type(db: Session, activity_type_id: int) -> bool:
     existing = get_activity_type_by_id(db, activity_type_id)
     if not existing:
         return False
+
+    now = now_local()
+
+    # Bloquear solo si alguna clase del tipo está dentro de la ventana de 2 horas
+    # previas al comienzo. Las clases ya pasadas no impiden el borrado.
+    blocking_class = (
+        db.query(WeeklyClass)
+        .filter(
+            WeeklyClass.activity_type_id == activity_type_id,
+            WeeklyClass.activity_date >= now,
+            WeeklyClass.activity_date < now + timedelta(hours=2),
+        )
+        .order_by(WeeklyClass.activity_date)
+        .first()
+    )
+
+    if blocking_class:
+        classDate = blocking_class.activity_date.strftime("%d/%m/%Y")
+        classTime = blocking_class.activity_date.strftime("%H:%M")
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"No se puede eliminar el tipo de actividad: hay una clase "
+                f"programada para el {classDate} a las {classTime}, dentro "
+                f"de las próximas dos horas."
+            ),
+        )
+
     try:
         if existing.image_public_id:
             cloudinary_service.delete_image(existing.image_public_id)
