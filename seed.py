@@ -8,8 +8,9 @@ Render Free. El catálogo y el horario siguen el fichero de referencia
 forma relativa al día en que se siembra.
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
+from core.config import now_local
 from core.database import SessionLocal
 from models.activity_type_model import ActivityType
 from models.booking_model import Booking
@@ -79,7 +80,7 @@ MEMBERS = [
 # El horario se genera de forma relativa al día en que se siembra: las clases
 # empiezan mañana (FIRST_DAY) y se añade una clase antigua (PAST_DAY) para
 # poder demostrar el borrado de reservas de clases pasadas.
-BASE_DAY = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+BASE_DAY = now_local().replace(hour=0, minute=0, second=0, microsecond=0)
 FIRST_DAY = BASE_DAY + timedelta(days=1)
 PAST_DAY = BASE_DAY - timedelta(days=1)
 
