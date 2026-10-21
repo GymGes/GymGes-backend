@@ -19,7 +19,7 @@ def get_all_weekly_classes(db: Session, skip: int = 0, limit: int = 100) -> List
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while retrieving weekly classes: {str(error)}"
+            detail=f"Error de base de datos al obtener las clases: {str(error)}"
         )
 
 
@@ -29,7 +29,7 @@ def get_weekly_class_by_id(db: Session, weekly_class_id: int) -> Optional[Weekly
     except SQLAlchemyError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while retrieving weekly class {weekly_class_id}: {str(error)}"
+            detail=f"Error de base de datos al obtener la clase {weekly_class_id}: {str(error)}"
         )
 
 
@@ -37,7 +37,7 @@ def _ensure_teacher_exists(db: Session, teacher_id: int) -> None:
     if not db.query(Teacher).filter(Teacher.id == teacher_id).first():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Teacher with id {teacher_id} not found"
+            detail=f"No se ha encontrado el profesor con id {teacher_id}"
         )
 
 
@@ -46,7 +46,7 @@ def _ensure_activity_type_exists(db: Session, activity_type_id: int) -> Activity
     if not activity_type:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Activity type with id {activity_type_id} not found"
+            detail=f"No se ha encontrado el tipo de actividad con id {activity_type_id}"
         )
     return activity_type
 
@@ -118,7 +118,7 @@ def create_weekly_class(db: Session, data: WeeklyClassCreate) -> WeeklyClass:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while creating weekly class: {str(error)}"
+            detail=f"Error de base de datos al crear la clase: {str(error)}"
         )
 
 # def update_weekly_class(db: Session, weekly_class_id: int, data: WeeklyClassUpdate) -> Optional[WeeklyClass]:
@@ -188,7 +188,7 @@ def delete_weekly_class(db: Session, weekly_class_id: int) -> bool:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=(
-                f"Database error while deleting weekly class "
+                f"Error de base de datos al eliminar la clase "
                 f"{weekly_class_id}: {str(error)}"
             ),
         )

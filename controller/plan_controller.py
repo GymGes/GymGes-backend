@@ -38,7 +38,7 @@ def get_plan(db: Session, plan_id: int):
     if plan is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Plan not found"
+            detail="No se ha encontrado el plan"
         )
 
     return plan
