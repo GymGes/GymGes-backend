@@ -156,15 +156,37 @@ def create_weekly_class(db: Session, data: WeeklyClassCreate) -> WeeklyClass:
 
 def delete_weekly_class(db: Session, weekly_class_id: int) -> bool:
     existing = get_weekly_class_by_id(db, weekly_class_id)
+
     if not existing:
         return False
+
+    now = datetime.now()
+    restrictionLimit = now + timedelta(hours=2)
+
+    if now <= existing.activity_date < restrictionLimit:
+        classDate = existing.activity_date.strftime("%d/%m/%Y")
+        classTime = existing.activity_date.strftime("%H:%M")
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"No se puede eliminar la sesión del {classDate} "
+                f"a las {classTime}. No se pueden eliminar sesiones "
+                f"cuando faltan menos de dos horas para el comienzo."
+            ),
+        )
+
     try:
         db.delete(existing)
         db.commit()
         return True
+
     except SQLAlchemyError as error:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error while deleting weekly class {weekly_class_id}: {str(error)}"
+            detail=(
+                f"Database error while deleting weekly class "
+                f"{weekly_class_id}: {str(error)}"
+            ),
         )
