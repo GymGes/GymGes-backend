@@ -161,9 +161,10 @@ def delete_weekly_class(db: Session, weekly_class_id: int) -> bool:
         return False
 
     now = datetime.now()
-    restrictionLimit = now + timedelta(hours=2)
+    cancellation_limit = existing.activity_date - timedelta(hours=2)
 
-    if now <= existing.activity_date < restrictionLimit:
+    # Bloquear si faltan 2 horas o menos, o si la sesión ya ha comenzado
+    if now >= cancellation_limit:
         classDate = existing.activity_date.strftime("%d/%m/%Y")
         classTime = existing.activity_date.strftime("%H:%M")
 
@@ -172,7 +173,8 @@ def delete_weekly_class(db: Session, weekly_class_id: int) -> bool:
             detail=(
                 f"No se puede eliminar la sesión del {classDate} "
                 f"a las {classTime}. No se pueden eliminar sesiones "
-                f"cuando faltan menos de dos horas para el comienzo."
+                f"cuando faltan dos horas o menos para el comienzo "
+                f"o cuando la sesión ya ha comenzado."
             ),
         )
 
