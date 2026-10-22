@@ -72,7 +72,13 @@ def update_member(
     member_data: MemberUpdate
 ) -> Member:
     member = get_member_by_id(db, code)
+    plan = db.query(Plan).filter(Plan.id == member_data.plan_id).first()
 
+    if plan is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se ha encontrado el plan"
+        )
     try:
         member.first_name = member_data.first_name
         member.last_name = member_data.last_name
