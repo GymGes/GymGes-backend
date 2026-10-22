@@ -65,28 +65,6 @@ def create_new_weekly_class(
     return weekly_class_controller.create_weekly_class(db=db, data=weekly_class_data)
 
 
-# @router.put(
-#     "/{weekly_class_id}",
-#     response_model=WeeklyClassResponse,
-#     summary="Update an existing weekly class",
-#     description="Update teacher, start time or duration (activity type cannot be changed)."
-# )
-# def update_existing_weekly_class(
-#     weekly_class_id: int,
-#     weekly_class_data: WeeklyClassUpdate,
-#     db: Session = Depends(get_db)
-# ):
-#     updated = weekly_class_controller.update_weekly_class(
-#         db=db, weekly_class_id=weekly_class_id, data=weekly_class_data
-#     )
-#     if not updated:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"No se ha encontrado la clase con id {weekly_class_id}"
-#         )
-#     return updated
-
-
 @router.delete(
     "/{weekly_class_id}",
     status_code=status.HTTP_204_NO_CONTENT,
