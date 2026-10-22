@@ -78,15 +78,15 @@ MEMBERS = [
 ]
 
 # El horario se genera de forma relativa al día en que se siembra: las clases
-# empiezan mañana (FIRST_DAY) y se añade una clase antigua (PAST_DAY) para
+# empiezan hoy (FIRST_DAY) y se añade una clase antigua (PAST_DAY) para
 # poder demostrar el borrado de reservas de clases pasadas.
 BASE_DAY = now_local().replace(hour=0, minute=0, second=0, microsecond=0)
-FIRST_DAY = BASE_DAY + timedelta(days=1)
+FIRST_DAY = BASE_DAY
 PAST_DAY = BASE_DAY - timedelta(days=1)
 
 # day_offset, teacher_id, activity_type_id, HH:MM, available_spots
 SCHEDULE = [
-    # Mañana (día 0)
+    # Hoy (día 0)
     (0, 2, 2, "07:30", 4),
     (0, 1, 1, "09:00", 16),
     (0, 3, 3, "09:30", 0),
@@ -97,13 +97,13 @@ SCHEDULE = [
     (0, 3, 3, "18:00", 2),
     (0, 1, 1, "20:15", 4),
     (0, 4, 6, "21:00", 5),
-    # Mañana + 1 (día 1)
+    # Mañana (día 1)
     (1, 2, 6, "08:45", 12),
     (1, 1, 1, "09:00", 16),
     (1, 3, 6, "17:30", 8),
     (1, 3, 3, "18:00", 2),
     (1, 3, 5, "20:45", 4),
-    # Mañana + 2 (día 2)
+    # Pasado mañana (día 2)
     (2, 1, 5, "08:15", 10),
     (2, 1, 1, "09:00", 16),
     (2, 2, 2, "12:00", 6),
