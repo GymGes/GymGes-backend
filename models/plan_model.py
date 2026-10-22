@@ -10,6 +10,6 @@ class Plan(Base):
     credits = Column(Integer, nullable=False, index=True)
 
     member= relationship("Member", back_populates="plan",cascade="all, delete-orphan")
-   
+
     def __repr__(self) -> str:
         return f"<Plan (id={self.id}, name='{self.name}')>"

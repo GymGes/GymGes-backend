@@ -121,39 +121,6 @@ def create_weekly_class(db: Session, data: WeeklyClassCreate) -> WeeklyClass:
             detail=f"Error de base de datos al crear la clase: {str(error)}"
         )
 
-# def update_weekly_class(db: Session, weekly_class_id: int, data: WeeklyClassUpdate) -> Optional[WeeklyClass]:
-#     existing = get_weekly_class_by_id(db, weekly_class_id)
-#     if not existing:
-#         return None
-
-#     update_fields = data.model_dump(exclude_unset=True)
-
-#     new_teacher_id = update_fields.get("teacher_id", existing.teacher_id)
-#     new_activity_date = update_fields.get("activity_date", existing.activity_date)
-
-#     if "teacher_id" in update_fields:
-#         _ensure_teacher_exists(db, new_teacher_id)
-
-#     if update_fields:
-#         _check_teacher_schedule_conflict(
-#             db, new_teacher_id, new_activity_date,
-#             existing.activity_type.duration, exclude_id=weekly_class_id
-#         )
-
-#     for field, value in update_fields.items():
-#         setattr(existing, field, value)
-
-#     try:
-#         db.commit()
-#         db.refresh(existing)
-#         return existing
-#     except SQLAlchemyError as error:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Database error while updating weekly class {weekly_class_id}: {str(error)}"
-#         )
-
 
 def delete_weekly_class(db: Session, weekly_class_id: int) -> bool:
     existing = get_weekly_class_by_id(db, weekly_class_id)
@@ -163,8 +130,6 @@ def delete_weekly_class(db: Session, weekly_class_id: int) -> bool:
 
     now = now_local()
 
-    # Bloquear solo si la sesión está dentro de la ventana de 2 horas previas
-    # al comienzo. Las sesiones ya pasadas se pueden eliminar.
     if now <= existing.activity_date < now + timedelta(hours=2):
         classDate = existing.activity_date.strftime("%d/%m/%Y")
         classTime = existing.activity_date.strftime("%H:%M")

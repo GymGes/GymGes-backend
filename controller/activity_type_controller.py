@@ -72,7 +72,7 @@ def create_activity_type(db: Session, data: ActivityTypeCreate, image: UploadFil
 
 
 def update_activity_type(db: Session, activity_type_id: int, data: ActivityTypeUpdate,
-                         image: UploadFile | None = None) -> Optional[ActivityType]:
+                        image: UploadFile | None = None) -> Optional[ActivityType]:
     existing = get_activity_type_by_id(db, activity_type_id)
 
     if not existing:
@@ -140,8 +140,6 @@ def delete_activity_type(db: Session, activity_type_id: int) -> bool:
 
     now = now_local()
 
-    # Bloquear solo si alguna clase del tipo está dentro de la ventana de 2 horas
-    # previas al comienzo. Las clases ya pasadas no impiden el borrado.
     blocking_class = (
         db.query(WeeklyClass)
         .filter(
