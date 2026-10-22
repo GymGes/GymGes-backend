@@ -1,8 +1,10 @@
 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
 
 from models.plan_model import Plan
+from models.member_model import Member
 from schema.plan_schema import PlanCreate, PlanUpdate
 
 
@@ -74,10 +76,23 @@ def update_plan(db: Session, plan_id: int, plan_data: PlanUpdate):
 def delete_plan(db: Session, plan_id: int):
     plan = get_plan(db, plan_id)
 
-    db.delete(plan)
-    db.commit()
+    assigned_members = db.query(Member).filter(Member.plan_id == plan_id).count()
+    if assigned_members > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"No se puede eliminar el plan: hay {assigned_members} socio(s) asignado(s) a este plan."
+        )
 
-    return {
-        "message": "Plan deleted successfully",
-        "plan_id": plan_id
-    }
+    try:
+        db.delete(plan)
+        db.commit()
+        return {
+            "message": "Plan deleted successfully",
+            "plan_id": plan_id
+        }
+    except SQLAlchemyError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error de base de datos al eliminar el plan: {str(error)}"
+        )
