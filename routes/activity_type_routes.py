@@ -32,8 +32,8 @@ def read_activity_type(activity_type_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=ActivityTypeResponse, status_code=status.HTTP_201_CREATED,
-             summary="Create a new activity type",
-             description="Add a new activity type entry to the database.")
+            summary="Create a new activity type",
+            description="Add a new activity type entry to the database.")
 def create_new_activity_type(
     name: str = Form(...),
     duration: int = Form(...),
@@ -78,8 +78,8 @@ def update_existing_activity_type(
 
 
 @router.delete("/{activity_type_id}", status_code=status.HTTP_204_NO_CONTENT,
-               summary="Delete an activity type",
-               description="Permanently remove an activity type by ID.")
+            summary="Delete an activity type",
+            description="Permanently remove an activity type by ID.")
 def remove_activity_type(activity_type_id: int, db: Session = Depends(get_db)):
     deleted = activity_type_controller.delete_activity_type(db=db, activity_type_id=activity_type_id)
     if not deleted:

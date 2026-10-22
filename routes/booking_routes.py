@@ -11,6 +11,7 @@ router = APIRouter(
     tags=["Booking"]
 )
 
+
 @router.get(
     "/",
     response_model=List[BookingResponse],
@@ -23,6 +24,7 @@ def read_bookings(
     db: Session = Depends(get_db)
 ):
     return controller.get_all_bookings(db=db, skip=skip, limit=limit)
+
 
 @router.get(
     "/member/{member_code}",
@@ -39,6 +41,7 @@ def read_bookings_by_member(
         member_code=member_code
     )
 
+
 @router.post(
     "/",
     response_model=BookingResponse,
@@ -52,6 +55,7 @@ def create_new_booking(
 ):
     return controller.create_booking(db=db, booking_data=booking_data)
 
+
 @router.get(
     "/{booking_id}",
     response_model=BookingResponse,
@@ -64,18 +68,6 @@ def read_booking(
 ):
     return controller.get_booking_by_id(db=db, booking_id=booking_id)
 
-# @router.put(
-#     "/{booking_id}",
-#     response_model=BookingResponse,
-#     summary="Update a booking",
-#     description="Update an existing booking"
-# )
-# def update_existing_booking(
-#     booking_id: int,
-#     booking_data: BookingUpdate,
-#     db: Session = Depends(get_db)
-# ):
-#     return controller.update_booking(db=db, booking_id=booking_id, booking_data=booking_data)
 
 @router.delete(
     "/{booking_id}",
