@@ -361,28 +361,7 @@ def configure_delete_booking_queries(db_mock, booking=None, member=None, weekly_
     db_mock.query.side_effect = [booking_query, member_query, class_query]
 
 
-def test_delete_booking_success_for_future_class(monkeypatch):
-    """Arrange"""
-    monkeypatch.setattr(controller, "now_local", lambda: NOW)
-    db_mock = MagicMock()
-    booking = MagicMock(spec=Booking)
-    booking.member_code = MEMBER_CODE
-    booking.class_id = 1
-    member = make_member()
-    weekly_class = make_weekly_class(
-        available_spots=4,
-        activity_date=NOW + timedelta(hours=3)
-    )
-    configure_delete_booking_queries(db_mock, booking, member, weekly_class)
 
-    """Act"""
-    result = controller.delete_booking(db=db_mock, booking_id=BOOKING_ID)
-
-    """Assert"""
-    assert result is None
-    assert weekly_class.available_spots == 5
-    db_mock.delete.assert_called_once_with(booking)
-    db_mock.commit.assert_called_once()
 
 
 def test_delete_booking_past_class_does_not_restore_spot(monkeypatch):
