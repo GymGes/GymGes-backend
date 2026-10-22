@@ -32,6 +32,12 @@ def _refund_credit_on_cascade_delete(mapper, connection, target: Booking) -> Non
         return
 
     connection.execute(
+        update(WeeklyClass)
+        .where(WeeklyClass.id == target.class_id)
+        .values(available_spots=WeeklyClass.available_spots + 1)
+    )
+        
+    connection.execute(
         update(Member)
         .where(Member.code == target.member_code)
         .values(remaining_credits=Member.remaining_credits + 1)

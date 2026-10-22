@@ -254,11 +254,6 @@ def delete_booking(db: Session, booking_id: int) -> None:
             detail="No se puede cancelar una reserva dentro de las 2 horas previas al comienzo de la clase"
         )
 
-    # Recuperar la plaza únicamente si la clase aún no ha comenzado.
-    # El reembolso de crédito lo gestiona el evento `before_delete` del
-    # modelo Booking (cubre tanto el borrado directo como el de cascada).
-    if classvar is not None and now < classvar.activity_date:
-        classvar.available_spots += 1
 
     try:
         db.delete(booking)
