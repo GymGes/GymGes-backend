@@ -369,7 +369,10 @@ def test_delete_booking_success_for_future_class(monkeypatch):
     booking.member_code = MEMBER_CODE
     booking.class_id = 1
     member = make_member()
-    weekly_class = make_weekly_class(available_spots=4)
+    weekly_class = make_weekly_class(
+        available_spots=4,
+        activity_date=NOW + timedelta(hours=3)
+    )
     configure_delete_booking_queries(db_mock, booking, member, weekly_class)
 
     """Act"""
