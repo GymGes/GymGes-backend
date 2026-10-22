@@ -17,29 +17,6 @@ def _get_class_interval(weekly_class: WeeklyClass) -> Tuple[datetime, datetime]:
     duration = weekly_class.activity_type.duration if weekly_class.activity_type else 0
     return start, start + timedelta(minutes=duration)
 
-
-# def _ensure_member_exists(db: Session, member_code: str) -> None:
-#     if not db.query(Member).filter(Member.code == member_code).first():
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"Member with code {member_code} not found"
-#         )
-
-
-# def _ensure_class_exists(db: Session, class_id: int) -> WeeklyClass:
-#     weekly_class = db.query(WeeklyClass).filter(WeeklyClass.id == class_id).first()
-#     if not weekly_class:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"Weekly class with id {class_id} not found"
-#         )
-    # Asegurar que la relación activity_type está cargada para calcular el fin
-    # if weekly_class.activity_type is None:
-    #     # Recarga por si la sesión expiró la relación
-    #     db.refresh(weekly_class, attribute_names=["activity_type"])
-    # return weekly_class
-
-
 def _check_member_schedule_conflict(
     db: Session,
     member_code: str,
@@ -58,8 +35,6 @@ def _check_member_schedule_conflict(
         query = query.filter(Booking.id != exclude_booking_id)
 
     for existing_booking in query.all():
-        # Misma clase -> se gestiona como duplicada en otro chequeo, aquí se ignora
-        # para dar un mensaje más claro de "reserva duplicada".
         if existing_booking.class_id == new_class.id:
             continue
         existing_class = db.query(WeeklyClass).filter(
@@ -186,45 +161,6 @@ def create_booking(db: Session, booking_data: BookingCreate) -> Booking:
             detail=f"Error de base de datos al crear la reserva: {str(error)}"
         )
 
-# def update_booking(db: Session, booking_id: int, booking_data: BookingUpdate) -> Booking:
-#     booking = get_booking_by_id(db, booking_id)
-#     try:
-#         new_member_code = booking_data.member_code if booking_data.member_code is not None else booking.member_code
-#         new_class_id = booking_data.class_id if booking_data.class_id is not None else booking.class_id
-
-#         if (new_member_code != booking.member_code) or (new_class_id != booking.class_id):
-#             _ensure_member_exists(db, new_member_code)
-#             new_class = _ensure_class_exists(db, new_class_id)
-
-#             duplicate = db.query(Booking).filter(
-#                 Booking.member_code == new_member_code,
-#                 Booking.class_id == new_class_id,
-#                 Booking.id != booking_id
-#             ).first()
-#             if duplicate:
-#                 raise HTTPException(
-#                     status_code=status.HTTP_409_CONFLICT,
-#                     detail=f"Member {new_member_code} already booked class {new_class_id}"
-#                 )
-
-#             _check_member_schedule_conflict(
-#                 db, new_member_code, new_class, exclude_booking_id=booking_id
-#             )
-
-#             booking.member_code = new_member_code
-#             booking.class_id = new_class_id
-#         db.commit()
-#         db.refresh(booking)
-#         return booking
-#     except HTTPException:
-#         raise
-#     except SQLAlchemyError as error:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Database error in updating booking {str(error)}"
-#         )
-
 
 def delete_booking(db: Session, booking_id: int) -> None:
     booking = get_booking_by_id(db, booking_id)
@@ -245,9 +181,6 @@ def delete_booking(db: Session, booking_id: int) -> None:
 
     now = now_local()
 
-    # Solo se bloquea la cancelación en la ventana de 2 horas previas al
-    # comienzo de una clase futura. Las clases ya pasadas se pueden eliminar
-    # (sin reembolsar crédito ni plaza).
     if classvar and classvar.activity_date - timedelta(hours=2) <= now < classvar.activity_date:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
