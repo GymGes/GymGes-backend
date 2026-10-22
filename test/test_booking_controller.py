@@ -188,13 +188,21 @@ def test_create_booking_class_not_found(monkeypatch):
     """Arrange"""
     monkeypatch.setattr(controller, "now_local", lambda: NOW)
     db_mock = MagicMock()
+
     class_query = MagicMock()
     class_query.filter.return_value.first.return_value = None
-    db_mock.query.side_effect = [class_query]
+
+    member_query = MagicMock()
+    member_query.filter.return_value.first.return_value = make_member()
+
+    db_mock.query.side_effect = [class_query, member_query]
 
     """Act / Assert"""
     with pytest.raises(HTTPException) as exc_info:
-        controller.create_booking(db=db_mock, booking_data=build_booking_data())
+        controller.create_booking(
+            db=db_mock,
+            booking_data=build_booking_data()
+        )
 
     assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
     assert exc_info.value.detail == "No se ha encontrado la clase"
@@ -205,18 +213,28 @@ def test_create_booking_class_already_started(monkeypatch):
     """Arrange"""
     monkeypatch.setattr(controller, "now_local", lambda: NOW)
     db_mock = MagicMock()
+
     class_query = MagicMock()
     class_query.filter.return_value.first.return_value = make_weekly_class(
         activity_date=NOW - timedelta(minutes=1)
     )
-    db_mock.query.side_effect = [class_query]
+
+    member_query = MagicMock()
+    member_query.filter.return_value.first.return_value = make_member()
+
+    db_mock.query.side_effect = [class_query, member_query]
 
     """Act / Assert"""
     with pytest.raises(HTTPException) as exc_info:
-        controller.create_booking(db=db_mock, booking_data=build_booking_data())
+        controller.create_booking(
+            db=db_mock,
+            booking_data=build_booking_data()
+        )
 
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-    assert "No se puede reservar una clase que ya ha comenzado" == exc_info.value.detail
+    assert exc_info.value.detail == (
+        "No se puede reservar una clase que ya ha comenzado"
+    )
     db_mock.add.assert_not_called()
 
 
