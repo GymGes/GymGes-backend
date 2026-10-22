@@ -1,13 +1,3 @@
-"""Datos de demostración de GymGes.
-
-Se siembran automáticamente en el arranque (ver ``main.py``) solo si la
-base de datos está vacía, de modo que sobreviven al disco efímero de
-Render Free. El catálogo y el horario siguen el fichero de referencia
-``gymges.sqlite3`` más las dos actividades extra del catálogo del index
-(Vinyasa Yoga y Kettlebell & Core); las fechas del horario se generan de
-forma relativa al día en que se siembra.
-"""
-
 from datetime import timedelta
 
 from core.config import now_local
@@ -21,7 +11,6 @@ from models.weekly_class_model import WeeklyClass
 
 CLOUDINARY = "https://res.cloudinary.com/u34rknur/image/upload"
 
-# id, name, duration, max_students, description, image_url, image_public_id
 ACTIVITY_TYPES = [
     (1, "Crossfit Studio", 50, 16,
      "Entrenamiento funcional de alta cadencia combinando halterofilia, "
@@ -57,12 +46,10 @@ ACTIVITY_TYPES = [
      "gymges/activities/kettlebell_core"),
 ]
 
-# id, name, credits
 PLANS = [
     (1, "Plan Ilimitado Pro", 30),
 ]
 
-# id, name
 TEACHERS = [
     (1, "Elena Gómez"),
     (2, "Marc Soler"),
@@ -70,23 +57,17 @@ TEACHERS = [
     (4, "David Rivas"),
 ]
 
-# code, first_name, last_name, age, city, address, plan_id, remaining_credits
 MEMBERS = [
     ("12345678Z", "Sara", "Rodríguez", 28, "Toledo", "Av. Reconquista 12", 1, 28),
     ("48291034X", "Lucía", "García", 31, "Toledo", "Calle Comercio 5", 1, 30),
     ("51928374T", "Pablo", "Núñez", 24, "Toledo", "Calle Nueva 3", 1, 0),
 ]
 
-# El horario se genera de forma relativa al día en que se siembra: las clases
-# empiezan mañana (FIRST_DAY) y se añade una clase antigua (PAST_DAY) para
-# poder demostrar el borrado de reservas de clases pasadas.
 BASE_DAY = now_local().replace(hour=0, minute=0, second=0, microsecond=0)
-FIRST_DAY = BASE_DAY + timedelta(days=1)
+FIRST_DAY = BASE_DAY
 PAST_DAY = BASE_DAY - timedelta(days=1)
 
-# day_offset, teacher_id, activity_type_id, HH:MM, available_spots
 SCHEDULE = [
-    # Mañana (día 0)
     (0, 2, 2, "07:30", 4),
     (0, 1, 1, "09:00", 16),
     (0, 3, 3, "09:30", 0),
@@ -97,40 +78,31 @@ SCHEDULE = [
     (0, 3, 3, "18:00", 2),
     (0, 1, 1, "20:15", 4),
     (0, 4, 6, "21:00", 5),
-    # Mañana + 1 (día 1)
     (1, 2, 6, "08:45", 12),
     (1, 1, 1, "09:00", 16),
     (1, 3, 6, "17:30", 8),
     (1, 3, 3, "18:00", 2),
     (1, 3, 5, "20:45", 4),
-    # Mañana + 2 (día 2)
     (2, 1, 5, "08:15", 10),
     (2, 1, 1, "09:00", 16),
     (2, 2, 2, "12:00", 6),
     (2, 2, 2, "19:15", 3),
+    (3, 1, 2, "08:00", 20),
+    (3, 2, 4, "10:30", 15),
+    (3, 4, 1, "18:00", 16),
+    (3, 3, 5, "20:00", 12),
 ]
 
-
-# teacher_id, activity_type_id, HH:MM, available_spots
 PAST_SLOT = (1, 1, "10:00", 16)
 
-# member_code, activity_date, activity_type_id
 BOOKINGS = [
-    # Borrables: clases futuras
     ("12345678Z", FIRST_DAY + timedelta(days=2, hours=9), 1),
     ("12345678Z", FIRST_DAY + timedelta(hours=20, minutes=15), 1),
-    # No borrable: mañana 11:30 (dentro de las 2h antes de la clase)
     ("48291034X", FIRST_DAY + timedelta(hours=11, minutes=30), 1),
-    # Reserva antigua: clase de ayer, se borra sin reembolsar créditos
     ("12345678Z", PAST_DAY + timedelta(hours=10), 1),
 ]
 
-
 def seed_if_empty() -> bool:
-    """Carga los datos de demo solo si la base de datos está vacía.
-
-    Devuelve ``True`` si siembra y ``False`` si ya había datos.
-    """
     db = SessionLocal()
     try:
         if db.query(Plan).first() is not None:
