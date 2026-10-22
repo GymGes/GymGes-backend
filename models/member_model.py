@@ -12,9 +12,9 @@ class Member(Base):
     city = Column(String(100), nullable=False)
     address = Column(String(255), nullable=False)
 
-    plan_id = Column(Integer, ForeignKey("plans.id"), nullable=False, index=True)
+    plan_id = Column(Integer, ForeignKey("plans.id"), index=True)
 
     remaining_credits = Column(Integer, nullable=False)
 
-    bookings = relationship("Booking", back_populates="member")
+    bookings = relationship("Booking", back_populates="member", cascade="all, delete-orphan" )
     plan = relationship("Plan", back_populates="member")
