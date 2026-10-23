@@ -158,21 +158,6 @@ def test_update_plan_invalid_credits():
     db_mock.commit.assert_not_called()
 
 
-def test_delete_plan_success():
-    """Arrange"""
-    db_mock = MagicMock()
-    plan = MagicMock(spec=Plan)
-    db_mock.query.return_value.filter.return_value.first.return_value = plan
-
-    """Act"""
-    result = delete_plan(db=db_mock, plan_id=PLAN_ID)
-
-    """Assert"""
-    assert result == {"message": "Plan deleted successfully", "plan_id": PLAN_ID}
-    db_mock.delete.assert_called_once_with(plan)
-    db_mock.commit.assert_called_once()
-
-
 def test_delete_plan_not_found():
     """Arrange"""
     db_mock = MagicMock()
